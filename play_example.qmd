@@ -1,0 +1,115 @@
+---
+title: "Some_example"
+format: 
+  revealjs:
+    chalkboard: true
+execute:
+  echo: true
+---
+
+## План
+
+- Что такое Quarto – короткое введение, смотрим сайт, рендерим самый первый пример в новом проекте
+- Что такое язык разметки
+- Что такое pandoc и что делает Quarto
+- Основы Quarto: чанки с кодом, Markdown, YAML -шапка
+- Основы Markdown: хэдеры, выделение жирным и курсивом, подчеркивания, ссылки, картинки (доп: коллауты), insert anything
+- чанки с кодом, их настройки, gt
+- YAML-headers
+- Разные форматы рендера
+- Графики
+- Интерактивные графики
+- Интерактивные таблицы
+- leaflet
+- Другие интерактивности (rpubs?)
+- написание статей в куарто, добавление ссылок
+
+## Пингвины
+
+```{r}
+#| message: false
+#| warning: false
+#| code-line-numbers: "|1|2"
+library(tidyverse)
+library(broom)
+```
+
+![](images/gorman-penguins.jpg){width="300"}
+
+```{r}
+#| message: false
+penguins <- read_csv("https://raw.githubusercontent.com/Pozdniakov/tidy_stats/refs/heads/master/data/penguins.csv")
+```
+
+## Описательная статистика
+
+```{r}
+penguins %>%
+  drop_na() %>%
+  group_by(species, island) %>%
+  summarise(across(where(is.numeric), mean)) %>%
+  gt::gt()
+```
+
+## Корреляции
+
+
+
+```{r}
+penguins %>%
+  group_by(species) %>%
+  summarise(tidy(cor.test(bill_length_mm, bill_depth_mm)))
+```
+
+## График
+
+```{r}
+gg <- ggplot(penguins) +
+  geom_point(aes(x = bill_length_mm, y =  bill_depth_mm, colour = species)) +
+  ggsci::scale_colour_aaas() +
+  hrbrthemes::theme_ipsum()
+gg
+```
+## {plotly}
+
+```{r}
+#| message: false
+#| warning: false
+library(plotly)
+ggplotly(gg)
+```
+## echarts4r
+
+```{r}
+library(echarts4r)
+penguins %>% 
+  group_by(species) %>%
+  summarise(bill_length_mm = mean(bill_length_mm, na.rm = TRUE),
+            bill_depth_mm = mean(bill_depth_mm, na.rm = TRUE)) %>%
+  e_charts(species) |> # initialise and set x
+  e_line(bill_length_mm) |>  # add a line
+  e_area(bill_depth_mm) # add area
+```
+
+## DT
+
+```{r}
+DT::datatable(penguins)
+```
+
+
+## {leaflet}
+
+```{r}
+#| echo: false
+geo_penguins <- read_csv("https://raw.githubusercontent.com/Pozdniakov/tidy_stats/refs/heads/master/data/geo_penguins.csv")
+library(leaflet)
+leaflet(geo_penguins) %>%
+  addTiles() %>%
+  addMarkers(
+    lng = ~longitude, lat = ~latitude,
+    popup = ~island
+  ) 
+
+```
+
